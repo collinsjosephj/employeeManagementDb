@@ -4,12 +4,12 @@
     "description": "A command-line application to manage/view employee data.",
     "main": "index.js",
     "scripts": {
-      "start": "node index.js"
+        "start": "node index.js"
     },
     "author": "",
     "license": "ISC",
     "dependencies": {
-      "inquirer": "^8.0.0",
-      "mysql2": "^3.10.0"
+        "inquirer": "^8.2.4",
+        "mysql2": "^3.10.0"
     }
-  }
+}
