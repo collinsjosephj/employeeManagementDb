@@ -3,76 +3,80 @@ const mysql = require('mysql2');
 const fs = require('fs');
 const db = require('./db');
 
-// Main Menu Functions
-function mainMenu() {
-    inquirer.prompt({
-        name: 'action',
-        type: 'list',
-        message: 'What would you like to do?',
-        choices: [
-            'View all departments',
-            'View all roles',
-            'View all employees',
-            'View employees by department',
-            'View employees by manager',
-            'Add a department',
-            'Add a role',
-            'Add an employee',
-            'Remove an employee',
-            'Update an employee role',
-            'Update an employee manager',
-            'Remove a department',
-            'View utilized budget by department',
-            'Remove a role',
-            'Exit'
-        ]
-    }).then(answer => {
+// Main Menu JS
+async function mainMenu() {
+    try {
+        const answer = await prompt({
+            name: 'action',
+            type: 'list',
+            message: 'What would you like to do?',
+            choices: [
+                'View all departments',
+                'View all roles',
+                'View all employees',
+                'View employees by department',
+                'View employees by manager',
+                'Add a department',
+                'Add a role',
+                'Add an employee',
+                'Remove an employee',
+                'Update an employee role',
+                'Update an employee manager',
+                'Remove a department',
+                'View utilized budget by department',
+                'Remove a role',
+                'Exit'
+            ]
+        });
+
         switch (answer.action) {
             case 'View all departments':
-                viewAllDepartments();
+                await viewAllDepartments();
                 break;
             case 'View all roles':
-                viewAllRoles();
+                await viewAllRoles();
                 break;
             case 'View all employees':
-                viewAllEmployees();
+                await viewAllEmployees();
                 break;
             case 'View employees by department':
-                viewEmployeesByDepartment();
+                await viewEmployeesByDepartment();
                 break;
             case 'View employees by manager':
-                viewEmployeesByManager();
+                await viewEmployeesByManager();
                 break;
             case 'Add a department':
-                addDepartment();
+                await addDepartment();
                 break;
             case 'Add a role':
-                addRole();
+                await addRole();
                 break;
             case 'Add an employee':
-                addEmployee();
+                await addEmployee();
                 break;
             case 'Remove an employee':
-                removeEmployee();
+                await removeEmployee();
                 break;
             case 'Update an employee role':
-                updateEmployeeRole();
+                await updateEmployeeRole();
                 break;
             case 'Update an employee manager':
-                updateEmployeeManager();
+                await updateEmployeeManager();
                 break;
             case 'Remove a department':
-                removeDepartment();
+                await removeDepartment();
                 break;
             case 'View utilized budget by department':
-                viewUtilizedBudgetByDepartment();
+                await viewUtilizedBudgetByDepartment();
                 break;
             case 'Remove a role':
-                removeRole();
+                await removeRole();
                 break;
             case 'Exit':
                 connection.end();
                 break;
         }
-    });
+    } catch (err) {
+        console.error("Error:", err);
+    }
 }
