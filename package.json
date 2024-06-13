@@ -1,0 +1,15 @@
+{
+    "name": "employeemanagementdb",
+    "version": "1.0.0",
+    "description": "A command-line application to manage/view employee data.",
+    "main": "index.js",
+    "scripts": {
+      "start": "node index.js"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+      "inquirer": "^8.0.0",
+      "mysql2": "^3.10.0"
+    }
+  }
