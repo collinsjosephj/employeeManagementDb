@@ -3,6 +3,7 @@ const mysql = require('mysql2');
 const fs = require('fs');
 const db = require('./db');
 
+// Main Menu Functions
 function mainMenu() {
     inquirer.prompt({
         name: 'action',
@@ -12,11 +13,17 @@ function mainMenu() {
             'View all departments',
             'View all roles',
             'View all employees',
+            'View employees by department',
+            'View employees by manager',
             'Add a department',
             'Add a role',
             'Add an employee',
+            'Remove an employee',
             'Update an employee role',
-            'Update an employee ',
+            'Update an employee manager',
+            'Remove a department',
+            'View utilized budget by department',
+            'Remove a role',
             'Exit'
         ]
     }).then(answer => {
@@ -30,6 +37,12 @@ function mainMenu() {
             case 'View all employees':
                 viewAllEmployees();
                 break;
+            case 'View employees by department':
+                viewEmployeesByDepartment();
+                break;
+            case 'View employees by manager':
+                viewEmployeesByManager();
+                break;
             case 'Add a department':
                 addDepartment();
                 break;
@@ -39,8 +52,23 @@ function mainMenu() {
             case 'Add an employee':
                 addEmployee();
                 break;
+            case 'Remove an employee':
+                removeEmployee();
+                break;
             case 'Update an employee role':
                 updateEmployeeRole();
+                break;
+            case 'Update an employee manager':
+                updateEmployeeManager();
+                break;
+            case 'Remove a department':
+                removeDepartment();
+                break;
+            case 'View utilized budget by department':
+                viewUtilizedBudgetByDepartment();
+                break;
+            case 'Remove a role':
+                removeRole();
                 break;
             case 'Exit':
                 connection.end();
