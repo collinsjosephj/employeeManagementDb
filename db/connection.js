@@ -9,11 +9,11 @@ async function connectToDb() {
             password: process.env.DB_PASSWORD,
             database: 'employeeData_db'
         });
-        console.log("Connected to Db!");
+        console.log("Success connecting to SQL DB!");
         return connection;
 
     } catch (err) {
-        console.error("Error has occured connecting to the database:", err);
+        console.error("ERROR CONNECTING TO DB:", err);
         throw err;
     }
 }

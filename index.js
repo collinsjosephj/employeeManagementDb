@@ -1,7 +1,5 @@
 const { prompt } = require("inquirer");
-const mysql = require('mysql2');
-const fs = require('fs');
-const db = require('./db');
+const connectToDb = require('./db/connection');
 
 // Main Menu JS
 async function mainMenu() {
@@ -73,10 +71,142 @@ async function mainMenu() {
                 await removeRole();
                 break;
             case 'Exit':
-                connection.end();
-                break;
+                console.log("Exiting...");
+                process.exit();
         }
+
     } catch (err) {
-        console.error("Error:", err);
+        console.error("ERROR HAS OCCURED:", err);
     }
 }
+
+async function viewAllDepartments() {
+    try {
+        const connection = await connectToDb();
+        const [results] = await connection.query('SELECT * FROM department');
+        console.table(results);
+        await connection.end();
+        await mainMenu();
+
+    } catch (err) {
+        console.error("ERROR HAS OCCURED:", err);
+    }
+}
+
+async function viewAllRoles() {
+    try {
+        const connection = await connectToDb();
+        const [results] = await connection.query(`
+            SELECT role.id, role.title, department.name AS department, role.salary
+            FROM role
+            LEFT JOIN department ON role.department_id = department.id
+            `);
+        console.table(results);
+        await connection.end();
+        await mainMenu();
+
+    } catch (err) {
+        console.error("ERROR HAS OCCURED:", err);
+    }
+}
+
+async function viewAllEmployees() {
+    try {
+        const connection = await connectToDb();
+        const [results] = await connection.query(`SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, CONCAT(manager.first_name, ' ', manager.last_name) AS manager 
+                FROM employee 
+                LEFT JOIN role ON employee.role_id = role.id 
+                LEFT JOIN department ON role.department_id = department.id 
+                LEFT JOIN employee manager ON manager.id = employee.manager_id
+            `);
+        console.table(results);
+        await connection.end();
+        await mainMenu();
+
+    } catch (err) {
+        console.error("ERROR HAS OCCURED:", err);
+    }
+}
+
+async function viewEmployeesByDepartment() {
+    try {
+        const connection = await connectToDb();
+        const [departments] = await connection.query('SELECT * FROM department');
+
+        const answer = await prompt({
+            name: 'department',
+            type: 'list',
+            choices: departments.map(department => ({
+                name: department.name,
+                value: department.id
+            })),
+            message: 'Please select a department:'
+        });
+
+        const [results] = await connection.query(`
+            SELECT employee.id, employee.first_name, employee.last_name, role.title 
+            FROM employee 
+            LEFT JOIN role ON employee.role_id = role.id 
+            LEFT JOIN department ON role.department_id = department.id 
+            WHERE department.id = ?
+        `, [answer.department]);
+
+        console.table(results);
+        await connection.end();
+        await mainMenu();
+
+    } catch (err) {
+        console.error("ERROR HAS OCCURED:", err);
+    }
+}
+
+async function viewEmployeesByManager() {
+    try {
+        const connection = await connectToDb();
+        const [managers] = await connection.query('SELECT * FROM employee WHERE manager_id IS NULL');
+
+        const answer = await prompt({
+            name: 'manager',
+            type: 'list',
+            choices: managers.map(manager => ({
+                name: `${manager.first_name} ${manager.last_name}`,
+                value: manager.id
+            })),
+            message: 'Please select a manager:'
+        });
+
+        const [results] = await connection.query(`SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name AS department 
+            FROM employee 
+            LEFT JOIN role ON employee.role_id = role.id 
+            LEFT JOIN department ON role.department_id = department.id 
+            WHERE employee.manager_id = ?`, [answer.manager]);
+
+        console.table(results);
+        await connection.end();
+        await mainMenu();
+
+    } catch (err) {
+        console.error("ERROR HAS OCCURED:", err);
+    }
+}
+
+async function addDepartment() {
+    try {
+        const answer = await prompt({
+            name: 'name',
+            type: 'input',
+            message: 'Enter the name of the department:'
+        });
+
+        await connection.query('INSERT INTO department SET ?', { name: answer.name });
+        console.log(`Department ${answer.name} added!`);
+        mainMenu();
+
+    } catch (err) {
+        console.error("ERROR HAS OCCURED:", err);
+    }
+}
+
+
+// Start the app
+mainMenu();
