@@ -207,6 +207,125 @@ async function addDepartment() {
     }
 }
 
+async function addRole() {
+    try {
+        const connection = await connectToDb();
+        const [departments] = await connection.query('SELECT * FROM department');
+        const answers = await prompt([
+            {
+                name: 'title',
+                type: 'input',
+                message: 'Enter the name of the role:'
+            },
+            {
+                name: 'salary',
+                type: 'input',
+                message: 'Enter the salary of the role:'
+            },
+            {
+                name: 'department',
+                type: 'list',
+                choices: departments.map(department => ({
+                    name: department.name,
+                    value: department.id
+                })),
+                message: 'Select the department for this role:'
+            }
+        ]);
+
+        await connection.query('INSERT INTO role SET ?', {
+            title: answers.title,
+            salary: answers.salary,
+            department_id: answers.department
+        });
+
+        console.log(`Role ${answers.title} added!`);
+        await connection.end();
+        await mainMenu();
+
+    } catch (err) {
+        console.error("ERROR HAS OCCURED:", err);
+    }
+}
+
+async function addEmployee() {
+    try {
+        const connection = await connectToDb();
+        
+        const [roles] = await connection.query('SELECT * FROM role');
+        const [employees] = await connection.query('SELECT * FROM employee');
+        
+        const answers = await prompt([
+            {
+                name: 'first_name',
+                type: 'input',
+                message: 'Enter the first name of the employee:'
+            },
+            {
+                name: 'last_name',
+                type: 'input',
+                message: 'Enter the last name of the employee:'
+            },
+            {
+                name: 'role',
+                type: 'list',
+                choices: roles.map(role => ({
+                    name: role.title,
+                    value: role.id
+                })),
+                message: 'Select the role for this employee:'
+            },
+            {
+                name: 'manager',
+                type: 'list',
+                choices: [{ name: 'None', value: null }].concat(employees.map(employee => ({
+                    name: `${employee.first_name} ${employee.last_name}`,
+                    value: employee.id
+                }))),
+                message: 'Select the manager for this employee:'
+            }
+        ]);
+
+        await connection.query('INSERT INTO employee SET ?', {
+            first_name: answers.first_name,
+            last_name: answers.last_name,
+            role_id: answers.role,
+            manager_id: answers.manager
+        });
+
+        console.log(`Employee ${answers.first_name} ${answers.last_name} added!`);
+        await connection.end(); 
+        await mainMenu(); 
+
+    } catch (err) {
+        console.error("ERROR HAS OCCURED:", err);
+    }
+}
+
+async function removeEmployee() {
+    try {
+        const connection = await connectToDb();
+        const [employees] = await connection.query('SELECT * FROM employee');
+        const answers = await prompt({
+            name: 'employee',
+            type:  'list',
+            choices: employees.map(employee => ({
+                name: `${employee.first_name} ${employee.last_name}`,
+                value: employee.id
+            })),
+            message: 'Select the employee to remove:'
+        });
+        await connection.query('DELETE FROM employee WHERE id = ?', [answers.employee]);
+
+        console.log('Employee has been removed!');
+        await connection.end();
+        await mainMenu();
+
+    } catch (err) {
+        console.error("ERROR HAS OCCURED:", err);
+    }
+}
+
 
 // Start the app
 mainMenu();
