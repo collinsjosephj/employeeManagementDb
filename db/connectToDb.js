@@ -1,4 +1,5 @@
 const mysql = require("mysql2/promise");
+const dotenv = require('dotenv').config();
 
 async function connectToDb() {
     try {
@@ -9,8 +10,7 @@ async function connectToDb() {
             database: process.env.DB_NAME
         });
         console.log("Success connecting to SQL DB!");
-        return connection;
-
+        return connection.connect;
     } catch (err) {
         console.error("ERROR CONNECTING TO DB:", err);
         throw err;

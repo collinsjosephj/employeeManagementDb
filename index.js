@@ -1,5 +1,36 @@
 const { prompt } = require("inquirer");
-const connectToDb = require('./db/connectToDb');
+const mysql = require("mysql2/promise");
+//const dotenv = require('dotenv').config();
+//const connectToDb = require('./db/connectToDb');
+
+let connection;
+
+async function connectToDb() {
+    try {
+        connection = await mysql.createConnection({
+            host: 'localhost',
+            user: 'root',
+            password: '',
+            database: 'employee_data_db'
+        });
+        console.log("Success connecting to SQL DB!");
+
+        // Handle connection errors and auto-reconnect
+        connection.on('error', async (err) => {
+            console.error("Database connection error:", err);
+            if (err.code === 'PROTOCOL_CONNECTION_LOST' || err.fatal) {
+                console.log("Reconnecting to the database...");
+                await connectToDb();
+            }
+        });
+
+        mainMenu();
+    } catch (err) {
+        console.error("ERROR CONNECTING TO DB:", err);
+        throw err;
+    }
+}
+
 
 // Main Menu JS
 async function mainMenu() {
@@ -72,6 +103,7 @@ async function mainMenu() {
                 break;
             case 'Exit':
                 console.log("Exiting...");
+                await connection.end();
                 process.exit();
         }
 
@@ -82,37 +114,37 @@ async function mainMenu() {
 
 async function viewAllDepartments() {
     try {
-        const connection = await connectToDb();
+        //const connection = await connectToDb();
         const [results] = await connection.query('SELECT * FROM department');
         console.table(results);
-        await connection.end();
-        await mainMenu();
 
     } catch (err) {
         console.error("ERROR HAS OCCURED:", err);
+    } finally {
+        mainMenu();
     }
 }
 
 async function viewAllRoles() {
     try {
-        const connection = await connectToDb();
+        //const connection = await connectToDb();
         const [results] = await connection.query(`
             SELECT role.id, role.title, department.name AS department, role.salary
             FROM role
             LEFT JOIN department ON role.department_id = department.id
             `);
         console.table(results);
-        await connection.end();
-        await mainMenu();
 
     } catch (err) {
         console.error("ERROR HAS OCCURED:", err);
+    } finally {
+        mainMenu();
     }
 }
 
 async function viewAllEmployees() {
     try {
-        const connection = await connectToDb();
+        //const connection = await connectToDb();
         const [results] = await connection.query(`SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, CONCAT(manager.first_name, ' ', manager.last_name) AS manager 
                 FROM employee 
                 LEFT JOIN role ON employee.role_id = role.id 
@@ -121,18 +153,18 @@ async function viewAllEmployees() {
             `);
         console.table(results);
         await connection.end();
-        await mainMenu();
 
     } catch (err) {
         console.error("ERROR HAS OCCURED:", err);
+    } finally {
+        mainMenu();
     }
 }
 
 async function viewEmployeesByDepartment() {
     try {
-        const connection = await connectToDb();
+        //const connection = await connectToDb();
         const [departments] = await connection.query('SELECT * FROM department');
-
         const answer = await prompt({
             name: 'department',
             type: 'list',
@@ -152,17 +184,17 @@ async function viewEmployeesByDepartment() {
         `, [answer.department]);
 
         console.table(results);
-        await connection.end();
-        await mainMenu();
 
     } catch (err) {
         console.error("ERROR HAS OCCURED:", err);
+    } finally {
+        mainMenu();
     }
 }
 
 async function viewEmployeesByManager() {
     try {
-        const connection = await connectToDb();
+        //const connection = await connectToDb();
         const [managers] = await connection.query('SELECT * FROM employee WHERE manager_id IS NULL');
 
         const answer = await prompt({
@@ -182,35 +214,63 @@ async function viewEmployeesByManager() {
             WHERE employee.manager_id = ?`, [answer.manager]);
 
         console.table(results);
-        await connection.end();
-        await mainMenu();
 
     } catch (err) {
         console.error("ERROR HAS OCCURED:", err);
+    } finally {
+        mainMenu();
     }
 }
-
 async function addDepartment() {
     try {
-        const answer = await prompt({
+        const departmentAnswer = await prompt({
             name: 'name',
             type: 'input',
             message: 'Enter the name of the department:'
         });
 
-        await connection.query('INSERT INTO department SET ?', { name: answer.name });
-        console.log(`Department ${answer.name} added!`);
-        await mainMenu();
+        const [result] = await connection.query('INSERT INTO department SET ?', { name: departmentAnswer.name });
+        const newDepartmentId = result.insertId;
+        console.log(`Department ${departmentAnswer.name} added!`);
+
+        const roleAnswer = await prompt([
+            {
+                name: 'title',
+                type: 'input',
+                message: 'Enter the name of the role for this department:'
+            },
+            {
+                name: 'salary',
+                type: 'input',
+                message: 'Enter the salary of the role:'
+            }
+        ]);
+
+        await connection.query('INSERT INTO role SET ?', {
+            title: roleAnswer.title,
+            salary: roleAnswer.salary,
+            department_id: newDepartmentId
+        });
+
+        console.log(`Role ${roleAnswer.title} added for department ${departmentAnswer.name}!`);
 
     } catch (err) {
         console.error("ERROR HAS OCCURED:", err);
+    } finally {
+        mainMenu();
     }
 }
 
 async function addRole() {
     try {
-        const connection = await connectToDb();
         const [departments] = await connection.query('SELECT * FROM department');
+        
+        if (departments.length === 0) {
+            console.log("No departments available. Please add a department first.");
+            await addDepartment(); // Direct user to add a department first
+            return;
+        }
+
         const answers = await prompt([
             {
                 name: 'title',
@@ -240,21 +300,21 @@ async function addRole() {
         });
 
         console.log(`Role ${answers.title} added!`);
-        await connection.end();
-        await mainMenu();
 
     } catch (err) {
         console.error("ERROR HAS OCCURED:", err);
+    } finally {
+        mainMenu();
     }
 }
 
 async function addEmployee() {
     try {
-        const connection = await connectToDb();
-        
+        //const connection = await connectToDb();
         const [roles] = await connection.query('SELECT * FROM role');
+        const [departments] = await connection.query('SELECT * FROM department');
         const [employees] = await connection.query('SELECT * FROM employee');
-        
+
         const answers = await prompt([
             {
                 name: 'first_name',
@@ -275,6 +335,15 @@ async function addEmployee() {
                 })),
                 message: 'Select the role for this employee:'
             },
+                        {
+                name: 'department',
+                type: 'list',
+                choices: departments.map(department => ({
+                    name: department.name,
+                    value: department.id
+                })),
+                message: 'Select the department for this employee:'
+            },
             {
                 name: 'manager',
                 type: 'list',
@@ -294,17 +363,16 @@ async function addEmployee() {
         });
 
         console.log(`Employee ${answers.first_name} ${answers.last_name} added!`);
-        await connection.end(); 
-        await mainMenu(); 
 
     } catch (err) {
         console.error("ERROR HAS OCCURED:", err);
+    } finally {
+        mainMenu();
     }
 }
-
 async function removeEmployee() {
     try {
-        const connection = await connectToDb();
+       //const connection = await connectToDb();
         const [employees] = await connection.query('SELECT * FROM employee');
         const answers = await prompt({
             name: 'employee',
@@ -318,17 +386,17 @@ async function removeEmployee() {
         await connection.query('DELETE FROM employee WHERE id = ?', [answers.employee]);
 
         console.log('Employee has been removed!');
-        await connection.end();
-        await mainMenu();
 
     } catch (err) {
         console.error("ERROR HAS OCCURED:", err);
+    } finally {
+        mainMenu();
     }
 }
 
 async function updateEmployeeRole() {
     try {
-        const connection = await connectToDb();
+        //const connection = await connectToDb();
         const [employees] = await connection.query('SELECT * FROM employee');
         const [roles] = await connection.query('SELECT * FROM role');
 
@@ -356,20 +424,18 @@ async function updateEmployeeRole() {
         await connection.query('UPDATE employee SET role_id = ? WHERE id = ?', [answers.role, answers.employee]);
 
         console.log('Employee role updated!');
-        await connection.end(); 
-        await mainMenu(); 
 
     } catch (err) {
         console.error("ERROR HAS OCCURED:", err);
+    } finally {
+        mainMenu();
     }
 }
 
 async function updateEmployeeManager() {
     try {
-        const connection = await connectToDb();
-
+        //const connection = await connectToDb();
         const [employees] = await connection.query('SELECT * FROM employee');
-
         const answers = await prompt([
             {
                 name: 'employee',
@@ -394,20 +460,18 @@ async function updateEmployeeManager() {
         await connection.query('UPDATE employee SET manager_id = ? WHERE id = ?', [answers.manager, answers.employee]);
 
         console.log('Employee manager updated!');
-        await connection.end(); 
-        await mainMenu(); 
 
     } catch (err) {
         console.error("ERROR HAS OCCURED:", err);
+    } finally {
+        mainMenu();
     }
 }
 
 async function removeDepartment() {
     try {
-        const connection = await connectToDb();
-
+        //const connection = await connectToDb();
         const [departments] = await connection.query('SELECT * FROM department');
-
         const answers = await prompt({
             name: 'department',
             type: 'list',
@@ -421,18 +485,17 @@ async function removeDepartment() {
         await connection.query('DELETE FROM department WHERE id = ?', [answers.department]);
 
         console.log('Department removed!');
-        await connection.end();
-        await mainMenu(); 
 
     } catch (err) {
         console.error("ERROR HAS OCCURED:", err);
+    } finally {
+        mainMenu();
     }
 }
 
 async function viewUtilizedBudgetByDepartment() {
     try {
-        const connection = await connectToDb();
-
+        //const connection = await connectToDb();
         const [results] = await connection.query(`
             SELECT department.name AS department, SUM(role.salary) AS utilized_budget 
             FROM employee 
@@ -442,20 +505,18 @@ async function viewUtilizedBudgetByDepartment() {
         `);
 
         console.table(results);
-        await connection.end(); 
-        await mainMenu(); 
 
     } catch (err) {
         console.error("ERROR HAS OCCURED:", err);
+    } finally {
+        mainMenu();
     }
 }
 
 async function removeRole() {
     try {
-        const connection = await connectToDb();
-
+       //const connection = await connectToDb();
         const [roles] = await connection.query('SELECT * FROM role');
-
         const answers = await prompt({
             name: 'role',
             type: 'list',
@@ -469,13 +530,16 @@ async function removeRole() {
         await connection.query('DELETE FROM role WHERE id = ?', [answers.role]);
 
         console.log('Role removed!');
-        await connection.end(); 
-        await mainMenu(); 
 
     } catch (err) {
         console.error("ERROR HAS OCCURED:", err);
+    } finally {
+        mainMenu();
     }
 }
 
+connectToDb();
+module.exports = connectToDb;
+
 // Start the app
-mainMenu();
+// mainMenu();
