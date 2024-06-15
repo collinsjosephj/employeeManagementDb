@@ -1,5 +1,5 @@
 const { prompt } = require("inquirer");
-const connectToDb = require('./db/connection');
+const connectToDb = require('./db/connectToDb');
 
 // Main Menu JS
 async function mainMenu() {
@@ -200,7 +200,7 @@ async function addDepartment() {
 
         await connection.query('INSERT INTO department SET ?', { name: answer.name });
         console.log(`Department ${answer.name} added!`);
-        mainMenu();
+        await mainMenu();
 
     } catch (err) {
         console.error("ERROR HAS OCCURED:", err);
@@ -326,6 +326,156 @@ async function removeEmployee() {
     }
 }
 
+async function updateEmployeeRole() {
+    try {
+        const connection = await connectToDb();
+        const [employees] = await connection.query('SELECT * FROM employee');
+        const [roles] = await connection.query('SELECT * FROM role');
+
+        const answers = await prompt([
+            {
+                name: 'employee',
+                type: 'list',
+                choices: employees.map(employee => ({
+                    name: `${employee.first_name} ${employee.last_name}`,
+                    value: employee.id
+                })),
+                message: 'Select the employee to update:'
+            },
+            {
+                name: 'role',
+                type: 'list',
+                choices: roles.map(role => ({
+                    name: role.title,
+                    value: role.id
+                })),
+                message: 'Select the new role for this employee:'
+            }
+        ]);
+
+        await connection.query('UPDATE employee SET role_id = ? WHERE id = ?', [answers.role, answers.employee]);
+
+        console.log('Employee role updated!');
+        await connection.end(); 
+        await mainMenu(); 
+
+    } catch (err) {
+        console.error("ERROR HAS OCCURED:", err);
+    }
+}
+
+async function updateEmployeeManager() {
+    try {
+        const connection = await connectToDb();
+
+        const [employees] = await connection.query('SELECT * FROM employee');
+
+        const answers = await prompt([
+            {
+                name: 'employee',
+                type: 'list',
+                choices: employees.map(employee => ({
+                    name: `${employee.first_name} ${employee.last_name}`,
+                    value: employee.id
+                })),
+                message: 'Select the employee to update:'
+            },
+            {
+                name: 'manager',
+                type: 'list',
+                choices: [{ name: 'None', value: null }].concat(employees.map(employee => ({
+                    name: `${employee.first_name} ${employee.last_name}`,
+                    value: employee.id
+                }))),
+                message: 'Select the new manager for this employee:'
+            }
+        ]);
+
+        await connection.query('UPDATE employee SET manager_id = ? WHERE id = ?', [answers.manager, answers.employee]);
+
+        console.log('Employee manager updated!');
+        await connection.end(); 
+        await mainMenu(); 
+
+    } catch (err) {
+        console.error("ERROR HAS OCCURED:", err);
+    }
+}
+
+async function removeDepartment() {
+    try {
+        const connection = await connectToDb();
+
+        const [departments] = await connection.query('SELECT * FROM department');
+
+        const answers = await prompt({
+            name: 'department',
+            type: 'list',
+            choices: departments.map(department => ({
+                name: department.name,
+                value: department.id
+            })),
+            message: 'Select the department to remove:'
+        });
+
+        await connection.query('DELETE FROM department WHERE id = ?', [answers.department]);
+
+        console.log('Department removed!');
+        await connection.end();
+        await mainMenu(); 
+
+    } catch (err) {
+        console.error("ERROR HAS OCCURED:", err);
+    }
+}
+
+async function viewUtilizedBudgetByDepartment() {
+    try {
+        const connection = await connectToDb();
+
+        const [results] = await connection.query(`
+            SELECT department.name AS department, SUM(role.salary) AS utilized_budget 
+            FROM employee 
+            LEFT JOIN role ON employee.role_id = role.id 
+            LEFT JOIN department ON role.department_id = department.id 
+            GROUP BY department.id
+        `);
+
+        console.table(results);
+        await connection.end(); 
+        await mainMenu(); 
+
+    } catch (err) {
+        console.error("ERROR HAS OCCURED:", err);
+    }
+}
+
+async function removeRole() {
+    try {
+        const connection = await connectToDb();
+
+        const [roles] = await connection.query('SELECT * FROM role');
+
+        const answers = await prompt({
+            name: 'role',
+            type: 'list',
+            choices: roles.map(role => ({
+                name: role.title,
+                value: role.id
+            })),
+            message: 'Select the role to remove:'
+        });
+
+        await connection.query('DELETE FROM role WHERE id = ?', [answers.role]);
+
+        console.log('Role removed!');
+        await connection.end(); 
+        await mainMenu(); 
+
+    } catch (err) {
+        console.error("ERROR HAS OCCURED:", err);
+    }
+}
 
 // Start the app
 mainMenu();

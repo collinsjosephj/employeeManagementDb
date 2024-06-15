@@ -1,4 +1,3 @@
------SEEDS------
 INSERT INTO department (name) VALUES
     ('Bakery'),
     ('Meat'),
