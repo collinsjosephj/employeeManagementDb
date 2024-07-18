@@ -5,6 +5,10 @@
 
 Developers frequently need to create interfaces that allow non-developers to easily view and interact with information stored in databases. These interfaces are known as content management systems (CMS). This project involves building a command-line application from scratch to manage a company's employee database, using Node.js, Inquirer@8.2.4, and MySQL.
 
+<img width="860" alt="Screenshot 2024-07-18 at 10 06 28" src="https://github.com/user-attachments/assets/827daf51-e41b-4777-a5c5-e0cb31a523e4">
+
+## Link to video demonstration: if you would like to checkout a demo of the functionality, you can check it out on Google Drive [here!](https://drive.google.com/file/d/1RVYeIsPO4BanOIvPBq0G1QXi-gTxXO2X/view?usp=sharing)
+
 ## Table of Contents
 
 - [Description](#description)
@@ -36,13 +40,29 @@ cd employeeManagementDb
 
 ```
 npm i
-
 ```
 
 ## Usage
 
 To start the application, kindly navigate to the project directory and run either:
 
+You will need to start up SQL and seed the database, to do so, navigate to db/schema.sql and open the terminal:
+
+```
+mysql -u root
+```
+or, 
+```
+mysql -your-user-name -your-password
+```
+Once a connection is initialized:
+```
+source schema.sql
+```
+
+Followed by:
+```
+source seeds.sql
 ```
 node index.js
 ```
