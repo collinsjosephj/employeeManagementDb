@@ -16,7 +16,6 @@ Developers frequently need to create interfaces that allow non-developers to eas
 - [Usage](#usage)
 - [License](#license)
 - [Contributing](#contributing)
-- [Tests](#tests)
 - [Questions](#questions)
 
 ## Installation
@@ -52,17 +51,21 @@ You will need to start up SQL and seed the database, to do so, navigate to db/sc
 mysql -u root
 ```
 or, 
+
 ```
 mysql -your-user-name -your-password
 ```
 Once a connection is initialized:
+
 ```
 source schema.sql
 ```
 
 Followed by:
+
 ```
 source seeds.sql
+```
 ```
 node index.js
 ```
@@ -92,21 +95,26 @@ This application is licensed under the MIT [LICENSE](https://github.com/collinsj
 
 I would love to collaborate and further develop this project, or any project **you** have in mind, so simply reach out to me via the links below, or you can:
 
+
+1. Fork/clone the repo
 ```
-# Fork/clone the repo
 git clone https://github.com/collinsjosephj/employeeManagementDb.git
-
-# Create a new branch
-git checkout -b feature/your-feature
-
-# Commit your changes
-git commit -m "added ______"
-
-# Push to your branch
-git push origin feature/your-feature
-
-# Create a pull request
 ```
+2. Create a new branch
+```
+git checkout -b feature/your-feature
+```
+3. Commit your changes
+```
+git commit -m "added ______"
+```
+
+4. Push to your branch
+```
+git push origin feature/your-feature
+```
+
+5. Create a pull request
 
 ## Questions
 
