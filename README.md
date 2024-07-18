@@ -19,25 +19,36 @@ Developers frequently need to create interfaces that allow non-developers to eas
 
 The first step to utilizting this CLI application is ensuring that you have Node.js installed on your machine. To install the necessary packages, navigate to your project folder, or the cloned version of this repo, and run the following commands. 
 
-```
-# Clone the repository
 
+1.  Clone the repository
+
+```
 git clone https://github.com/collinsjosephj/employeeManagementDb.git
-
-# Navigate to the project directory
-
-cd employeeManagementDb
-
-# Install dependencies
-
-npm i inquirer@8.2.4
-npm i mysql2
 ```
+
+2.  Navigate to the project directory
+
+```
+cd employeeManagementDb
+```
+
+3.  Install dependencies
+
+```
+npm i
+
+```
+
 ## Usage
 
 To start the application, kindly navigate to the project directory and run either:
+
 ```
 node index.js
+```
+or, 
+
+```
 npm start
 ```
 
@@ -53,9 +64,9 @@ Upon starting the application, you will be presented with the following options:
 
 Follow the prompts to interact with the database.
 
-## License 
+## License  ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-This expressNoteTaker application is licensed under the MIT license, please refer to MITs open-source documentation for further information. 
+This application is licensed under the MIT [LICENSE](https://github.com/collinsjosephj/employeeManagementDb/blob/main/LICENSE), please refer to MITs open-source documentation for further information. 
 
 ## Contributing
 
@@ -79,8 +90,6 @@ git push origin feature/your-feature
 
 ## Questions
 
-If you have any questions about the repo, open an issue or contact me directly at 
-[collinsjosephj](mailto:collinsjosephj). 
+If you have any questions about the repo, open an issue or contact me directly via email [here](mailto:collinsjosephj@gmail.com). 
 
-You can find more of my work at 
-(https://github.com/collinsjosephj@gmail.com).
+You can find more of my work on [GitHub](https://github.com/collinsjosephj@gmail.com).
